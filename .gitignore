@@ -248,3 +248,9 @@ fabric.properties
 .idea/**/azureSettings.xml
 
 # End of https://www.toptal.com/developers/gitignore/api/jetbrains
+
+labs/results/
+labs/wandb/
+labs/scripts/*.txt
+labs/scripts/test*
+model-zoo/models/brain_image_synthesis_latent_diffusion_model/models/
