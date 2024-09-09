@@ -102,7 +102,7 @@ class UKB_Dataset(Dataset):
         sample["label"] = age
         if self.transform:
             sample = self.transform(sample)
-            sample["image"] = sample["image"][0,:,:,:] # pseudo color channel (64,64,64)
+            sample["image"] = sample["image"][:,:,:,64] # pseudo color channel (1,128,128)
             # print("sample:", sample["image"])
             # print("sample shape:", sample["image"].shape)
 
@@ -209,17 +209,17 @@ def main():
     # ## Autoencoder KL
     # ### Define Autoencoder KL network, losses and optimiser
     # In this section, we will define an autoencoder with KL-regularization for the LDM. The autoencoder's primary purpose is to transform input images into a latent representation that the diffusion model will subsequently learn. By doing so, we can decrease the computational resources required to train the diffusion component, making this approach suitable for learning high-resolution medical images. We will also specify the perceptual and adversarial losses, including the involved networks, and the optimizers to use during the training process.
-    num_channels = (256, 128, 64, 32)
+    num_channels = (128, 256, 512, 512)
     autoencoderkl = AutoencoderKL(
         spatial_dims=2,
-        in_channels=input_size[0], # depends on input size
-        out_channels=input_size[0], # depends on input size
-        num_channels=num_channels, # (128, 128, 256),
-        latent_channels=int(input_size[0]/(2**(len(num_channels)-1))), # input_size/(2^(4-1))
-        num_res_blocks=4,
+        in_channels=3, # depends on input size
+        out_channels=3, # depends on input size
+        num_channels=num_channels, # num_channels = (128, 256, 512, 512)
+        latent_channels=4, # input_size/(2^(4-1))
+        num_res_blocks=2,
         attention_levels=tuple(False for _ in num_channels),
-        with_encoder_nonlocal_attn=False,
-        with_decoder_nonlocal_attn=False,
+        #with_encoder_nonlocal_attn=False,
+        #with_decoder_nonlocal_attn=False,
     )
     autoencoderkl = autoencoderkl.to(device, dtype=weight_dtype)
 

@@ -34,18 +34,21 @@ from torchsummary import summary
 # from skimage.transform import resize
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+input_size = (160,224,160) # (64,64,64) # (160,224,160)
+num_channels = (32, 64, 128, 256) # (256, 128, 64, 32)
 autoencoderkl = AutoencoderKL(
         spatial_dims=2,
-        in_channels=64,
-        out_channels=64,
-        num_channels=(128, 256, 256, 512), # (128, 128, 256),
-        latent_channels=16, # 128/(2^(4-1))
-        num_res_blocks=2,
-        attention_levels=(False, False, False, False),
+        in_channels=input_size[0],
+        out_channels=input_size[0],
+        num_channels=num_channels, # (128, 128, 256),
+        latent_channels=int(input_size[0]/(2**(len(num_channels)-1))), # 128/(2^(4-1))
+        num_res_blocks=4,
+        attention_levels=tuple(False for _ in num_channels),
         with_encoder_nonlocal_attn=False,
         with_decoder_nonlocal_attn=False,
     )
 autoencoderkl.to(device)
+autoencoderkl = autoencoderkl.to(device)
 
 nb_acts, nb_inputs, nb_params = 0, 0, 0
 def count_output_act(m, input, output):
@@ -61,7 +64,7 @@ def count_parameters(model):
 
 nb_params = sum([p.nelement() for p in autoencoderkl.parameters()])
 
-autoencoderkl_input = torch.ones(1, 64, 64, 64).float().to(device) # 716,800
+autoencoderkl_input = torch.ones(1, input_size[0], input_size[1], input_size[2]).float().to(device) # 716,800
 autoencoderkl.eval() # 13,766,248
 encoded = autoencoderkl(autoencoderkl_input)
 nb_inputs = autoencoderkl_input.nelement()
@@ -69,7 +72,7 @@ nb_inputs = autoencoderkl_input.nelement()
 print('input elem: {}, param elem: {}, forward act: {}, mem usage: {}GB'.format(nb_inputs, nb_params, nb_acts, (nb_inputs+nb_params+nb_acts)*4/1024**3))
 print("{:.2f} GB".format(torch.cuda.memory_allocated() / 1024 ** 3))
 print("Autoencdoer parameters:", count_parameters(autoencoderkl))
-summary(autoencoderkl, (64, 64, 64))
+summary(autoencoderkl, input_size)
 
 
 # CNN
@@ -257,13 +260,13 @@ import numpy as np
 import nibabel as nib
 import matplotlib.pyplot as plt
 
-file_type = "T1_brain.nii.gz"
+file_type = "T1_brain_to_MNI.nii.gz"
 path = "/leelabsg/data/20252_test/1000502_20252_2_0/T1"
 img = nib.load(os.path.join(path, file_type))
 img_data = img.get_fdata()
 img_data.shape
 
-test = img_data[:,:,59]
+test = img_data[90,:,:]
 plt.imshow(test)
 plt.show()
-plt.savefig(f"/shared/s1/lab06/wonyoung/GenerativeModels/Brain_LDM/a_imgs/{file_type}.png")
+plt.savefig(f"/shared/s1/lab06/wonyoung/GenerativeModels/labs/{file_type}.png")

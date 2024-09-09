@@ -254,3 +254,4 @@ labs/wandb/
 labs/scripts/*.txt
 labs/scripts/test*
 model-zoo/models/brain_image_synthesis_latent_diffusion_model/models/
+labs/*.png
